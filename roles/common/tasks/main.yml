@@ -9,6 +9,7 @@
       - nano
       - mosh
       - tmux
+      - curl
       - zsh
     state: present
     update_cache: true
