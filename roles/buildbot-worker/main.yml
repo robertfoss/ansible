@@ -1,0 +1,60 @@
+---
+# prepare a machine for running a buildbot-worker
+- name: install openwrt build prerequesites
+  # as presented here: https://openwrt.org/docs/guide-developer/build-system/install-buildsystem#debianubuntu
+  apt:
+    name:
+      - build-essential 
+      - ccache 
+      - ecj 
+      - fastjar 
+      - file 
+      - g++
+      - gawk
+      - gettext
+      - git
+      - java-propose-classpath
+      - libelf-dev
+      - libncurses5-dev
+      - libncursesw5-dev
+      - libssl-dev
+      - python
+      - python2.7-dev
+      - python3
+      - unzip
+      - wget
+      - python3-distutils 
+      - python3-setuptools 
+      - python3-dev
+      - rsync
+      - subversion
+      - swig 
+      - time 
+      - xsltproc 
+      - zlib1g-dev
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: create unpreviliged user for buildbot worker
+  user:
+    name: bbworker
+    comment: unpreviliged user for running buildbot-workers
+
+- name: install buildbot-worker-code in virtualenv
+  pip:
+    name: buildbot-worker
+    virtualenv: ~/bbworker-env
+  become: bbworker
+
+- name: check, if buildbot-worker was spawned already
+  stat:
+    path: ~/{{ bbworker_basedir }}
+  register: bbworker
+
+- name: spawn buildbot-worker in its dir
+  command: ~/bbworker-env/bin/buildbot-worker create-worker {{ bbworker_basedir }} {{ bbmaster_host }}:{{ bbmaster_port }} {{ bbworker_name }} {{ bbworker_passwd }}
+  when: not bbworker.stat.exists
+  
+
+...
