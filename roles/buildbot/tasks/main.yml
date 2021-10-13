@@ -15,11 +15,23 @@
 
 - name: install buildbot in venv
   pip:
-    name: buildbot
+    name:
+      - 'buildbot[bundle]'
     virtualenv: /usr/local/src/buildbot/env
-  
+
+- name: check if the master ist initialised already
+  stat:
+    path: /usr/local/src/buildbot/masters/master/state.sqlite
+  register: buildbot_master
+
 - name: initialise buildbot-master
   command: /usr/local/src/buildbot/env/bin/buildbot create-master /usr/local/src/buildbot/masters/master
+  when: not buildbot_master.stat.exists
+
+- name: deploy workers credentials on master
+  copy:
+    src: files/worker.py
+    dest: /usr/local/src/buildbot/masters/master/worker.py
 
 - name: add buildbot systemd-service-module
   copy:

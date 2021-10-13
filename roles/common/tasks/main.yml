@@ -9,6 +9,7 @@
       - nano
       - mosh
       - tmux
+      - curl
       - zsh
       - collectd
     state: present
