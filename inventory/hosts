@@ -1,2 +1,7 @@
 [buildbot]
 buildbot.berlin.freifunk.net
+
+[buildbot_worker]
+85.215.238.165  # buildbot.worker01
+85.215.248.194  # buildbot.worker02
+85.215.225.21   # buildbot.worker03
