@@ -2,7 +2,7 @@
 # This playbook deploys the whole application stack in this site.
 
 - name: apply common configuration
-  hosts: all
+  hosts: hetzner-vm-buildbot
   become: true
   vars_files:
     - inventory/group_vars/users
@@ -10,13 +10,20 @@
     - common
     - ryandaniels.create_users
 
-- name: set up buildbot environment
-  hosts: buildbot
-  become: true
+#- name: set up buildbot environment
+#  hosts: buildbot
+#  become: true
+#  roles:
+#    - buildbot
+#    - geerlingguy.nginx
+#    - systemli.letsencrypt
+
+- name: set up buildbot worker
+  hosts: hetzner-vm-buildbot
+  vars_files:
+    - inventory/group_vars/buildbot_worker
   roles:
-    - buildbot
-    - geerlingguy.nginx
-    - systemli.letsencrypt
+    - buildbot-worker
 
 #- name: set up config server
 #  hosts:  config

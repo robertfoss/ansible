@@ -1,2 +1,5 @@
 [buildbot]
 buildbot.berlin.freifunk.net
+
+[buildbot_worker]
+hetzner-vm-buildbot

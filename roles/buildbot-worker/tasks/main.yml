@@ -1,0 +1,90 @@
+---
+
+- name: install dependencies for falter build system and openwrt
+  apt:
+    name:
+      - curl
+      - python3-pip
+      - rsync
+      - build-essential
+      - ccache
+      - ecj
+      - fastjar
+      - file
+      - g++
+      - gawk
+      - gettext
+      - git
+      - java-propose-classpath
+      - libelf-dev
+      - libncurses5-dev
+      - libncursesw5-dev
+      - libssl-dev
+      - python
+      - python2.7-dev
+      - python3
+      - unzip
+      - wget
+      - python3-distutils
+      - python3-setuptools
+      - python3-dev
+      - rsync
+      - subversion
+      - swig
+      - time
+      - xsltproc
+      - zlib1g-dev
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: create unpriviliged user for buildbot
+  user:
+    name: bbworker
+
+- name: install docker and add user
+  include_role:
+    name: geerlingguy.docker
+  vars:
+    docker_package_state: present
+    docker_users:
+      - bbworker
+
+- name: install buildbot-worker
+  pip:
+    name: 
+      - buildbot-worker
+      - docker-hub
+    state: present
+
+- name: worker initialised already?
+  stat:
+    path: /home/bbworker/{{ bbworker_dir }}
+  register: worker
+
+- name: initialise buildbot-worker
+  become: true
+  become_user: bbworker
+  command: buildbot-worker create-worker --umask=0o22 {{ bbworker_dir }} {{ bbmaster_fqdn }}:{{ bbmaster_port }} {{ bbworker_name }} {{ bbworker_pwd }}
+  args:
+    chdir: /home/bbworker/
+  when: not worker.stat.exists
+  
+# ToDo: anpassen...
+- name: add buildbot-worker systemd-service-module
+  copy:
+    dest: /etc/systemd/system/buildbot.service
+    mode: 0644
+    content: |
+      [Unit]
+      Description=Buildbot-worker for Freifunk-Berlin
+      After=network.target
+
+      [Service]
+      User=bbworker
+      Group=bbworker
+      WorkingDirectory=/home/bbworker/{{ bbworker_dir }}
+      ExecStart=/usr/local/bin/buildbot-worker start --nodaemon
+
+      [Install]
+      WantedBy=multi-user.target
